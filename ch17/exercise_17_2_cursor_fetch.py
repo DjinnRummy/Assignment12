@@ -1,7 +1,14 @@
-import sqlite3
+'''This program covers exercise 17.2 in the course textbook
+Name: Tierra Gipson'''
 
+import sqlite3
+import os
+
+# Get the current script directory
+base_dir = os.path.dirname(os.path.abspath(__file__))
+db_path = os.path.join(base_dir, "books.db")
 # Connect to the books database
-connection = sqlite3.connect('books.db')
+connection = sqlite3.connect(db_path)
 cursor = connection.cursor()
 
 # Execute a query to select all from titles
