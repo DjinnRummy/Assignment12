@@ -2,9 +2,14 @@
 name: Tierra Gipson '''
 
 import sqlite3
+import os
 
-# Connect to the books database (relative path)
-connection = sqlite3.connect("books.db")
+# Get the current script directory
+base_dir = os.path.dirname(os.path.abspath(__file__))
+db_path = os.path.join(base_dir, "books.db")
+
+# Connect to the books database
+connection = sqlite3.connect(db_path)
 cursor = connection.cursor()
 
 # 1. Select all authors’ last names from the authors table in descending order
@@ -29,28 +34,36 @@ for row in cursor.execute("""
 """):
     print(row)
 
-# 4. Insert a new author from textbook-style names
+# 4. Insert a new author
 cursor.execute("""
-    INSERT INTO authors (first, last) VALUES ('Harvey', 'Quirk')
+    INSERT OR IGNORE INTO authors (first, last) VALUES ('Alexis', 'Rivera')
 """)
 
-# 5. Insert a new real-ish title
+# 5. Insert a new title
 cursor.execute("""
-    INSERT INTO titles (isbn, title, edition, copyright)
-    VALUES ('0143141592', 'Advanced Java Concepts', 1, '2024')
+    INSERT OR IGNORE INTO titles (isbn, title, edition, copyright)
+    VALUES ('9999999999', 'How to Train Your Compiler', 1, '2025')
 """)
 
 # 6. Retrieve the ID of the new author
 cursor.execute("""
-    SELECT id FROM authors WHERE first = 'Harvey' AND last = 'Quirk'
+    SELECT id FROM authors WHERE first = 'Alexis' AND last = 'Rivera'
 """)
-author_id = cursor.fetchone()[0]
-
-# 7. Link the new author and new book
-cursor.execute("""
-    INSERT INTO author_ISBN (id, isbn) VALUES (?, ?)
-""", (author_id, '0143141592'))
+result = cursor.fetchone()
+if result:
+    author_id = result[0]
+    try:
+        # 7. Link the new author and new book
+        cursor.execute("""
+            INSERT INTO author_ISBN (id, isbn) VALUES (?, ?)
+        """, (author_id, '9999999999'))
+        print("\nInserted author_ISBN relationship.")
+    except sqlite3.IntegrityError:
+        print("Relationship between author and book already exists — skipping insert.")
+else:
+    print("Author not found, skipping relationship insert.")
 
 # Commit and close
 connection.commit()
 connection.close()
+
